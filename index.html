@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KaririTech Informática — Sistema de Recibos</title>
+<style>
+/* ── RESET & BASE ── */
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --azul:#cc0000;--azul2:#8b0000;--vermelho:#ff1a1a;
+  --verde:#cc0000;--laranja:#e63300;--bg:#111111;
+  --card:#fff;--border:#e0e0e0;--text:#1a1a1a;--muted:#555;
+}
+body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px}
+input,select,textarea,button{font-family:inherit;font-size:14px}
+button{cursor:pointer}
+
+/* ── TOPBAR ── */
+#topbar{
+  background:linear-gradient(90deg,#1a1a1a,#000);
+  border-bottom:3px solid #cc0000;
+  padding:0 24px;display:flex;align-items:center;
+  justify-content:space-between;position:sticky;top:0;z-index:200;
+  box-shadow:0 4px 20px rgba(0,0,0,.8)
+}
+#topbar .brand{display:flex;align-items:center;gap:12px;padding:14px 0}
+#topbar .brand-name{color:#fff;font-weight:800;font-size:17px}
+#topbar .brand-sub{color:#cc0000;font-size:10px;font-weight:700;letter-spacing:2px}
+#topbar nav{display:flex}
+#topbar nav button{
+  padding:18px 14px;border:none;background:transparent;
+  color:#888;font-weight:600;font-size:12px;letter-spacing:.3px;
+  border-bottom:3px solid transparent;transition:all .2s
+}
+#topbar nav button.active{color:#cc0000;border-bottom-color:#cc0000}
+#topbar nav button:hover:not(.active){color:#fff}
+#counters{display:flex;gap:20px}
+#counters .cnt{text-align:center}
+#counters .cnt .num{font-size:16px;font-weight:900}
+#counters .cnt .lbl{font-size:9px;color:#666;font-weight:600}
+
+/* ── LAYOUT ── */
+#main{padding:20px 24px;max-width:1280px;margin:0 auto}
+.page{display:none}.page.active{display:block}
+
+/* ── CARDS ── */
+.card{background:#fff;border-radius:12px;padding:22px;box-shadow:0 2px 16px rgba(0,0,0,.25);margin-bottom:16px;border-top:3px solid #cc0000}
+.card-title{font-size:16px;font-weight:800;color:#cc0000;margin-bottom:16px}
+
+/* ── TABS ── */
+.doc-tabs{display:flex;gap:8px;margin-bottom:18px}
+.doc-tab{flex:1;padding:11px 0;border:none;border-radius:10px;font-weight:700;font-size:13px;
+  background:rgba(255,255,255,.05);color:#666;transition:all .2s;border:1px solid rgba(255,255,255,.08)}
+.doc-tab.active{color:#fff;box-shadow:0 4px 18px rgba(204,0,0,.5)}
+
+/* ── FORMS ── */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.form-grid .full{grid-column:1/-1}
+label.lbl{display:block;font-size:11px;font-weight:700;color:#555;
+  text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+input[type=text],input[type=number],input[type=date],input[type=email],
+input[type=tel],select,textarea{
+  width:100%;padding:9px 12px;border:1.5px solid #ddd;border-radius:8px;
+  color:#1a1a1a;background:#fff;outline:none;transition:border-color .2s
+}
+input:focus,select:focus,textarea:focus{border-color:#cc0000;box-shadow:0 0 0 2px rgba(204,0,0,.12)}
+textarea{resize:vertical;min-height:72px}
+.field{margin-bottom:0}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border:none;
+  border-radius:8px;font-weight:700;font-size:13px;transition:all .2s}
+.btn:hover{opacity:.85;transform:translateY(-1px)}
+.btn-primary{background:#cc0000;color:#fff}
+.btn-danger{background:#000;color:#fff}
+.btn-success{background:#cc0000;color:#fff}
+.btn-warn{background:#e63300;color:#fff}
+.btn-sm{padding:6px 12px;font-size:12px;border-radius:6px}
+.btn-full{width:100%;justify-content:center;padding:12px}
+.btn-outline{background:transparent;border:2px solid #cc0000;color:#cc0000}
+
+/* ── TAGS ── */
+.tag{display:inline-block;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:700}
+
+/* ── TABLE ── */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#cc0000;color:#fff;padding:9px 12px;text-align:left;font-size:12px}
+th:first-child{border-radius:8px 0 0 0}th:last-child{border-radius:0 8px 0 0}
+td{padding:9px 12px;border-bottom:1px solid #f0f0f0}
+tr:hover td{background:#fff5f5}
+.tbl-actions{display:flex;gap:6px}
+
+/* ── DISCOUNT BOX ── */
+.disc-box{background:#fff5f5;border:2px dashed #cc0000;border-radius:10px;padding:14px;margin-bottom:14px}
+.disc-box .disc-title{font-weight:700;color:#cc0000;font-size:13px;margin-bottom:10px}
+.disc-applied{display:flex;align-items:center;gap:10px}
+.disc-input-row{display:flex;gap:8px}
+
+/* ── TOAST ── */
+#toast{
+  position:fixed;bottom:24px;right:24px;z-index:9999;
+  padding:12px 22px;border-radius:10px;color:#fff;font-weight:700;font-size:13px;
+  box-shadow:0 4px 20px rgba(0,0,0,.3);opacity:0;transition:opacity .3s;pointer-events:none
+}
+
+/* ── EMPTY STATE ── */
+.empty{text-align:center;color:#bbb;padding:48px 20px;font-size:14px}
+
+/* ── MODAL ── */
+#modal-overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:1000;
+  align-items:center;justify-content:center;padding:20px
+}
+#modal-overlay.open{display:flex}
+#modal-box{
+  background:#fff;border-radius:16px;max-width:860px;width:100%;
+  max-height:92vh;overflow-y:auto;box-shadow:0 24px 60px rgba(0,0,0,.6);
+  border-top:4px solid #cc0000
+}
+#modal-toolbar{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:14px 22px;border-bottom:1px solid #eee;background:#1a1a1a;
+  border-radius:12px 12px 0 0;position:sticky;top:0;z-index:10
+}
+#modal-toolbar span{font-weight:700;color:#fff;font-size:14px}
+#modal-content{padding:28px 36px}
+
+/* ── ITEMS TABLE ── */
+.items-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.item-row{display:grid;grid-template-columns:3fr 1fr 1fr 1fr 32px;gap:8px;margin-bottom:8px;align-items:end}
+.item-total-row{text-align:right;font-weight:800;color:#cc0000;font-size:15px;margin-top:8px}
+
+/* ── COUPON CARDS ── */
+.coupon-card{border-radius:10px;padding:14px;border-left:4px solid #cc0000;background:#fff;
+  box-shadow:0 2px 8px rgba(0,0,0,.08);margin-bottom:10px;display:flex;justify-content:space-between;align-items:flex-start}
+.coupon-code{font-family:Consolas,monospace;font-size:20px;font-weight:900;color:#cc0000;letter-spacing:2px}
+.client-card{border-radius:10px;padding:14px;background:#fff;
+  box-shadow:0 2px 8px rgba(0,0,0,.08);margin-bottom:10px;display:flex;justify-content:space-between;align-items:flex-start;
+  border-left:4px solid #222}
+
+/* ── PRINT DOCUMENT ── */
+.doc-wrap{font-family:Georgia,serif;color:#222;max-width:780px;margin:0 auto}
+.doc-header{display:flex;align-items:center;justify-content:space-between;
+  border-bottom:3px solid #cc0000;padding-bottom:14px;margin-bottom:18px}
+.doc-co-name{font-family:'Segoe UI',sans-serif;font-size:19px;font-weight:800;color:#000}
+.doc-co-info{font-size:11px;color:#444;line-height:1.8;font-family:'Segoe UI',sans-serif}
+.doc-badge{background:#cc0000;color:#fff;padding:5px 14px;border-radius:6px;
+  font-size:12px;font-weight:700;font-family:'Segoe UI',sans-serif;letter-spacing:1px}
+.doc-num{font-size:21px;font-weight:900;color:#cc0000;font-family:'Segoe UI',sans-serif}
+.doc-value-box{background:#fff0f0;border:2px solid #cc0000;border-radius:10px;
+  padding:16px;text-align:center;margin-bottom:16px}
+.doc-value-main{font-size:32px;font-weight:900;color:#cc0000;font-family:'Segoe UI',sans-serif}
+.doc-value-ext{font-size:12px;color:#555;margin-top:4px}
+.doc-sign-row{display:flex;justify-content:space-between;margin-top:28px;
+  padding-top:14px;border-top:1px dashed #ccc}
+.doc-sign-line{border-top:1px solid #333;width:200px;margin-bottom:6px}
+.doc-footer{margin-top:16px;border-top:1px solid #eee;padding-top:8px;
+  font-size:10px;color:#aaa;text-align:center;font-family:'Segoe UI',sans-serif}
+.doc-disc-badge{background:#cc0000;color:#fff;padding:3px 12px;border-radius:20px;
+  font-size:11px;font-weight:700;display:inline-block}
+.doc-table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:12px}
+.doc-table th{background:#cc0000;color:#fff;padding:8px 10px;text-align:center;font-size:11px;font-family:'Segoe UI',sans-serif}
+.doc-table td{padding:7px 10px;border-bottom:1px solid #eee;text-align:center}
+.doc-table tfoot td{background:#1a1a1a;color:#fff;font-weight:900;font-size:14px;font-family:'Segoe UI',sans-serif}
+.doc-obs{background:#fff5f5;border:1px solid #ffaaaa;border-radius:6px;padding:10px;font-size:12px;margin-top:8px}
+.carne-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.carne-parcela{border:2px solid #cc0000;border-radius:10px;padding:12px;position:relative;background:#fff}
+.carne-parcela .badge-parc{position:absolute;top:-10px;left:10px;background:#cc0000;color:#fff;
+  font-size:10px;padding:2px 10px;border-radius:20px;font-weight:700}
+.carne-parcela .val{font-size:18px;font-weight:800;color:#cc0000;margin-top:8px;font-family:'Segoe UI',sans-serif}
+
+/* ── SEARCH ── */
+.search-row{display:flex;gap:12px;align-items:center;margin-bottom:14px}
+.search-row input{flex:1}
+
+/* ── RESPONSIVE ── */
+@media(max-width:700px){
+  .form-grid{grid-template-columns:1fr}
+  .form-grid .full{grid-column:1}
+  #counters{display:none}
+  .carne-grid{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div id="topbar">
+  <div class="brand">
+    <svg width="42" height="42" viewBox="0 0 80 80" fill="none">
+      <rect width="80" height="80" rx="14" fill="#1a1a1a"/>
+      <rect x="10" y="28" width="16" height="16" rx="3" fill="#cc0000"/>
+      <rect x="32" y="18" width="16" height="26" rx="3" fill="#000" stroke="#cc0000" stroke-width="2"/>
+      <rect x="54" y="22" width="16" height="22" rx="3" fill="#cc0000" opacity=".85"/>
+      <circle cx="18" cy="56" r="5" fill="#fff" opacity=".9"/>
+      <circle cx="40" cy="56" r="5" fill="#fff" opacity=".9"/>
+      <circle cx="62" cy="56" r="5" fill="#fff" opacity=".9"/>
+      <line x1="18" y1="56" x2="40" y2="56" stroke="#fff" stroke-width="2" opacity=".5"/>
+      <line x1="40" y1="56" x2="62" y2="56" stroke="#fff" stroke-width="2" opacity=".5"/>
+    </svg>
+    <div>
+      <div class="brand-name">KaririTech Informática</div>
+      <div class="brand-sub">GESTÃO FISCAL PRO</div>
+    </div>
+  </div>
+  <nav>
+    <button class="nav-btn active" data-page="docs">📄 Documentos</button>
+    <button class="nav-btn" data-page="clients">👥 Clientes</button>
+    <button class="nav-btn" data-page="referrals">🎟️ Indicações</button>
+    <button class="nav-btn" data-page="history">📋 Histórico</button>
+  </nav>
+  <div id="counters">
+    <div class="cnt"><div class="num" id="cnt-recibo" style="color:#cc0000">0000</div><div class="lbl">Recibos</div></div>
+    <div class="cnt"><div class="num" id="cnt-carne" style="color:#ff4444">0000</div><div class="lbl">Carnês</div></div>
+    <div class="cnt"><div class="num" id="cnt-prom" style="color:#ff6666">0000</div><div class="lbl">Promissórias</div></div>
+    <div class="cnt"><div class="num" id="cnt-nfe" style="color:#ff8888">0000</div><div class="lbl">NF-e</div></div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+
+  <!-- ══ DOCUMENTOS ══ -->
+  <div class="page active" id="page-docs">
+    <div class="doc-tabs">
+      <button class="doc-tab active" data-tab="recibo" style="background:#cc0000;color:#fff">🧾 Recibo</button>
+      <button class="doc-tab" data-tab="carne">📋 Carnê</button>
+      <button class="doc-tab" data-tab="promissoria">📜 Promissória</button>
+      <button class="doc-tab" data-tab="nfe">🧮 NF-e</button>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+        <div>
+          <div class="card-title" id="doc-tab-title" style="margin-bottom:2px">🧾 Recibo</div>
+          <div style="font-size:12px;color:#999">Próximo nº: <strong id="next-num" style="color:#cc0000">#001001</strong>
+          &nbsp;·&nbsp;<span id="doc-info-clients">0 clientes</span>
+          &nbsp;·&nbsp;<span id="doc-info-coupons">0 cupons</span></div>
+        </div>
+      </div>
+
+      <!-- RECIBO FORM -->
+      <div id="form-recibo">
+        <div style="margin-bottom:12px">
+          <label class="lbl">Selecionar Cliente Cadastrado</label>
+          <select id="r-client" onchange="fillClient('r')">
+            <option value="">— Escolha um cliente —</option>
+          </select>
+        </div>
+        <div class="form-grid">
+          <div class="field full"><label class="lbl">Pagador / Empresa *</label><input type="text" id="r-pagador"></div>
+          <div class="field"><label class="lbl">CPF / CNPJ</label><input type="text" id="r-cpfcnpj"></div>
+          <div class="field"><label class="lbl">Valor (R$) *</label><input type="number" id="r-valor" min="0" step="0.01" oninput="updateDiscount('r')"></div>
+          <div class="field"><label class="lbl">Data</label><input type="date" id="r-data"></div>
+          <div class="field"><label class="lbl">Forma de Pagamento</label>
+            <select id="r-forma">
+              <option>Dinheiro</option><option selected>PIX</option><option>Transferência</option>
+              <option>Cheque</option><option>Cartão de Crédito</option><option>Cartão de Débito</option><option>Boleto</option>
+            </select>
+          </div>
+          <div class="field full"><label class="lbl">Descrição / Referente a</label><textarea id="r-desc"></textarea></div>
+        </div>
+        <div class="disc-box">
+          <div class="disc-title">🎟️ Cupom de Indicação (opcional)</div>
+          <div id="r-disc-applied" style="display:none" class="disc-applied">
+            <span class="tag" style="background:#fee2e2;color:#cc0000" id="r-disc-tag"></span>
+            <button class="btn btn-danger btn-sm" onclick="removeDiscount('r')">✕ Remover</button>
+          </div>
+          <div id="r-disc-input" class="disc-input-row">
+            <input type="text" id="r-coupon-code" placeholder="Ex: JOAO-AB123" style="text-transform:uppercase;flex:1">
+            <button class="btn btn-warn btn-sm" onclick="applyDiscount('r')">Aplicar</button>
+          </div>
+          <div id="r-disc-err" style="color:#cc0000;font-size:12px;margin-top:4px;display:none"></div>
+        </div>
+        <div id="r-disc-preview" style="display:none;background:#f0fff4;border:1px solid #a0e0b0;border-radius:8px;padding:10px;margin-bottom:12px;font-size:13px"></div>
+        <button class="btn btn-primary btn-full" onclick="printRecibo()">🖨️ Gerar / Imprimir PDF</button>
+      </div>
+
+      <!-- CARNÊ FORM -->
+      <div id="form-carne" style="display:none">
+        <div style="margin-bottom:12px">
+          <label class="lbl">Selecionar Cliente</label>
+          <select id="c-client" onchange="fillClient('c')"><option value="">— Escolha —</option></select>
+        </div>
+        <div class="form-grid">
+          <div class="field full"><label class="lbl">Devedor / Cliente *</label><input type="text" id="c-devedor"></div>
+          <div class="field"><label class="lbl">CPF / CNPJ</label><input type="text" id="c-cpfcnpj"></div>
+          <div class="field"><label class="lbl">Valor Total (R$) *</label><input type="number" id="c-valor" min="0" step="0.01" oninput="updateDiscount('c')"></div>
+          <div class="field"><label class="lbl">Nº de Parcelas</label><input type="number" id="c-parcelas" value="3" min="1"></div>
+          <div class="field"><label class="lbl">Data 1ª Parcela</label><input type="date" id="c-data"></div>
+          <div class="field"><label class="lbl">Dia Vencimento</label><input type="number" id="c-diavenc" value="10" min="1" max="31"></div>
+          <div class="field full"><label class="lbl">Descrição</label><textarea id="c-desc"></textarea></div>
+        </div>
+        <div class="disc-box">
+          <div class="disc-title">🎟️ Cupom de Indicação (opcional)</div>
+          <div id="c-disc-applied" style="display:none" class="disc-applied">
+            <span class="tag" style="background:#fee2e2;color:#cc0000" id="c-disc-tag"></span>
+            <button class="btn btn-danger btn-sm" onclick="removeDiscount('c')">✕ Remover</button>
+          </div>
+          <div id="c-disc-input" class="disc-input-row">
+            <input type="text" id="c-coupon-code" placeholder="Código do cupom" style="text-transform:uppercase;flex:1">
+            <button class="btn btn-warn btn-sm" onclick="applyDiscount('c')">Aplicar</button>
+          </div>
+          <div id="c-disc-err" style="color:#cc0000;font-size:12px;margin-top:4px;display:none"></div>
+        </div>
+        <div id="c-disc-preview" style="display:none;background:#f0fff4;border:1px solid #a0e0b0;border-radius:8px;padding:10px;margin-bottom:12px;font-size:13px"></div>
+        <button class="btn btn-success btn-full" onclick="printCarne()">🖨️ Gerar / Imprimir PDF</button>
+      </div>
+
+      <!-- PROMISSÓRIA FORM -->
+      <div id="form-promissoria" style="display:none">
+        <div style="margin-bottom:12px">
+          <label class="lbl">Selecionar Cliente</label>
+          <select id="p-client" onchange="fillClient('p')"><option value="">— Escolha —</option></select>
+        </div>
+        <div class="form-grid">
+          <div class="field full"><label class="lbl">Emitente (Devedor) *</label><input type="text" id="p-emitente"></div>
+          <div class="field"><label class="lbl">CPF / CNPJ</label><input type="text" id="p-cpfcnpj"></div>
+          <div class="field full"><label class="lbl">Endereço do Emitente</label><input type="text" id="p-endereco"></div>
+          <div class="field"><label class="lbl">Valor (R$) *</label><input type="number" id="p-valor" min="0" step="0.01" oninput="updateDiscount('p')"></div>
+          <div class="field"><label class="lbl">Vencimento</label><input type="date" id="p-vencimento"></div>
+          <div class="field"><label class="lbl">Local de Emissão</label><input type="text" id="p-local" value="Juazeiro do Norte – CE"></div>
+          <div class="field"><label class="lbl">Data de Emissão</label><input type="date" id="p-data"></div>
+        </div>
+        <div class="disc-box">
+          <div class="disc-title">🎟️ Cupom de Indicação (opcional)</div>
+          <div id="p-disc-applied" style="display:none" class="disc-applied">
+            <span class="tag" style="background:#fee2e2;color:#cc0000" id="p-disc-tag"></span>
+            <button class="btn btn-danger btn-sm" onclick="removeDiscount('p')">✕ Remover</button>
+          </div>
+          <div id="p-disc-input" class="disc-input-row">
+            <input type="text" id="p-coupon-code" placeholder="Código do cupom" style="text-transform:uppercase;flex:1">
+            <button class="btn btn-warn btn-sm" onclick="applyDiscount('p')">Aplicar</button>
+          </div>
+          <div id="p-disc-err" style="color:#cc0000;font-size:12px;margin-top:4px;display:none"></div>
+        </div>
+        <div id="p-disc-preview" style="display:none;background:#f0fff4;border:1px solid #a0e0b0;border-radius:8px;padding:10px;margin-bottom:12px;font-size:13px"></div>
+        <button class="btn btn-full" style="background:#8b0000;color:#fff" onclick="printPromissoria()">🖨️ Gerar / Imprimir PDF</button>
+      </div>
+
+      <!-- NF-E FORM -->
+      <div id="form-nfe" style="display:none">
+        <div style="margin-bottom:12px">
+          <label class="lbl">Selecionar Cliente</label>
+          <select id="n-client" onchange="fillClient('n')"><option value="">— Escolha —</option></select>
+        </div>
+        <div class="form-grid">
+          <div class="field full"><label class="lbl">Tomador / Cliente *</label><input type="text" id="n-tomador"></div>
+          <div class="field"><label class="lbl">CPF / CNPJ</label><input type="text" id="n-cpfcnpj"></div>
+          <div class="field"><label class="lbl">Endereço</label><input type="text" id="n-endereco"></div>
+          <div class="field"><label class="lbl">Data de Emissão</label><input type="date" id="n-data"></div>
+        </div>
+        <div style="background:#f8f9fa;border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px">
+          <div class="items-header">
+            <strong style="color:#cc0000">Itens / Serviços</strong>
+            <button class="btn btn-primary btn-sm" onclick="addItem()">+ Adicionar Item</button>
+          </div>
+          <div id="items-list"></div>
+          <div class="item-total-row" id="item-total">Total: R$ 0,00</div>
+        </div>
+        <div class="field" style="margin-bottom:14px"><label class="lbl">Observações</label><textarea id="n-obs"></textarea></div>
+        <div class="disc-box">
+          <div class="disc-title">🎟️ Cupom de Indicação (opcional)</div>
+          <div id="n-disc-applied" style="display:none" class="disc-applied">
+            <span class="tag" style="background:#fee2e2;color:#cc0000" id="n-disc-tag"></span>
+            <button class="btn btn-danger btn-sm" onclick="removeDiscount('n')">✕ Remover</button>
+          </div>
+          <div id="n-disc-input" class="disc-input-row">
+            <input type="text" id="n-coupon-code" placeholder="Código do cupom" style="text-transform:uppercase;flex:1">
+            <button class="btn btn-warn btn-sm" onclick="applyDiscount('n')">Aplicar</button>
+          </div>
+          <div id="n-disc-err" style="color:#cc0000;font-size:12px;margin-top:4px;display:none"></div>
+        </div>
+        <div id="n-disc-preview" style="display:none;background:#f0fff4;border:1px solid #a0e0b0;border-radius:8px;padding:10px;margin-bottom:12px;font-size:13px"></div>
+        <button class="btn btn-full" style="background:#111;color:#fff" onclick="printNFe()">🖨️ Gerar / Imprimir PDF</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ CLIENTES ══ -->
+  <div class="page" id="page-clients">
+    <h2 style="color:#fff;font-size:20px;font-weight:800;margin-bottom:18px">👥 Cadastro de Clientes</h2>
+    <div style="display:grid;grid-template-columns:320px 1fr;gap:18px">
+      <div class="card">
+        <div class="card-title" id="client-form-title">➕ Novo Cliente</div>
+        <input type="hidden" id="cl-id">
+        <div class="field" style="margin-bottom:10px"><label class="lbl">Nome Completo *</label><input type="text" id="cl-nome"></div>
+        <div class="field" style="margin-bottom:10px"><label class="lbl">CPF / CNPJ</label><input type="text" id="cl-cpfcnpj"></div>
+        <div class="field" style="margin-bottom:10px"><label class="lbl">Telefone / WhatsApp</label><input type="tel" id="cl-tel"></div>
+        <div class="field" style="margin-bottom:10px"><label class="lbl">E-mail</label><input type="email" id="cl-email"></div>
+        <div class="field" style="margin-bottom:10px"><label class="lbl">Endereço</label><input type="text" id="cl-end"></div>
+        <div class="field" style="margin-bottom:10px"><label class="lbl">Cidade</label><input type="text" id="cl-cidade"></div>
+        <div class="field" style="margin-bottom:14px"><label class="lbl">Observações</label><textarea id="cl-obs" style="min-height:56px"></textarea></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-success btn-full" onclick="saveClient()">✅ Salvar Cliente</button>
+          <button class="btn btn-danger btn-sm" id="cl-cancel-btn" onclick="cancelClientEdit()" style="display:none">✕</button>
+        </div>
+      </div>
+      <div>
+        <div class="search-row">
+          <input type="text" id="cl-search" placeholder="🔍 Buscar por nome, CPF ou telefone..." oninput="renderClients()">
+          <span class="tag" style="background:#e8e8e8;color:#222;white-space:nowrap" id="cl-count">0 clientes</span>
+        </div>
+        <div id="clients-list"><div class="empty card">Nenhum cliente cadastrado ainda.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ INDICAÇÕES ══ -->
+  <div class="page" id="page-referrals">
+    <h2 style="color:#fff;font-size:20px;font-weight:800;margin-bottom:18px">🎟️ Indicações & Cupons de Desconto</h2>
+    <div style="display:grid;grid-template-columns:340px 1fr;gap:18px">
+      <div class="card">
+        <div class="card-title">✨ Gerar Novo Cupom</div>
+        <div class="field" style="margin-bottom:12px">
+          <label class="lbl">Quem Indicou (Cliente) *</label>
+          <select id="ref-indicador"><option value="">— Selecione o indicador —</option></select>
+        </div>
+        <div class="field" style="margin-bottom:12px">
+          <label class="lbl">Nome do Indicado (Novo Cliente)</label>
+          <input type="text" id="ref-indicado" placeholder="Nome de quem foi indicado">
+        </div>
+        <div style="margin-bottom:12px">
+          <label class="lbl">Desconto (%)</label>
+          <div style="display:flex;gap:6px;margin-bottom:8px">
+            <button class="btn btn-sm pct-btn" data-pct="5" onclick="setPct(5)" style="flex:1;border:2px solid #dde">5%</button>
+            <button class="btn btn-sm pct-btn" data-pct="10" onclick="setPct(10)" style="flex:1;border:2px solid #cc0000;background:#fff0f0;color:#cc0000">10%</button>
+            <button class="btn btn-sm pct-btn" data-pct="15" onclick="setPct(15)" style="flex:1;border:2px solid #dde">15%</button>
+            <button class="btn btn-sm pct-btn" data-pct="20" onclick="setPct(20)" style="flex:1;border:2px solid #dde">20%</button>
+          </div>
+          <input type="number" id="ref-pct" value="10" min="1" max="100">
+        </div>
+        <div class="field" style="margin-bottom:16px">
+          <label class="lbl">Validade (opcional)</label>
+          <input type="date" id="ref-validade">
+        </div>
+        <button class="btn btn-primary btn-full" onclick="generateCoupon()">✨ Gerar Cupom</button>
+        <div style="margin-top:16px;padding:14px;background:#fff0f0;border-radius:10px;font-size:12px;color:#8b0000;line-height:1.8;border-left:3px solid #cc0000">
+          <strong>Como funciona:</strong><br>
+          1. Selecione o cliente que indicou alguém.<br>
+          2. Informe o nome do novo cliente.<br>
+          3. O sistema gera um código único.<br>
+          4. Na emissão de documento, o código é inserido para aplicar desconto automaticamente.
+        </div>
+      </div>
+      <div>
+        <div class="card" style="padding:14px 18px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center">
+          <strong style="color:#cc0000">Cupons Emitidos</strong>
+          <div style="display:flex;gap:8px">
+            <span class="tag" style="background:#e8e8e8;color:#333" id="coupon-count-total">0 total</span>
+            <span class="tag" style="background:#fee2e2;color:#cc0000" id="coupon-count-active">0 disponíveis</span>
+          </div>
+        </div>
+        <div id="coupons-list"><div class="empty card">Nenhum cupom gerado ainda.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ HISTÓRICO ══ -->
+  <div class="page" id="page-history">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+      <h2 style="color:#fff;font-size:20px;font-weight:800">📋 Histórico de Emissões</h2>
+      <button class="btn btn-danger btn-sm" onclick="clearHistory()">🗑️ Limpar Histórico</button>
+    </div>
+    <div id="history-list"><div class="empty card">Nenhum documento emitido ainda.</div></div>
+  </div>
+
+</div>
+
+<!-- MODAL PREVIEW -->
+<div id="modal-overlay">
+  <div id="modal-box">
+    <div id="modal-toolbar">
+      <span>📄 Pré-visualização do Documento</span>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary btn-sm" onclick="doPrint()">🖨️ Imprimir / Salvar PDF</button>
+        <button class="btn btn-danger btn-sm" onclick="closeModal()">✕ Fechar</button>
+      </div>
+    </div>
+    <div id="modal-content"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════
+//  EMPRESA
+// ═══════════════════════════════════════
+const CO = {
+  name:"KaririTech Informática",
+  cnpj:"00.000.000/0001-00",
+  ie:"000.000.000.000",
+  address:"Rua das Tecnologias, 123 – Centro",
+  city:"Juazeiro do Norte – CE",
+  cep:"63010-000",
+  phone:"(88) 9 9999-9999",
+  email:"contato@kariritech.com.br",
+  site:"www.kariritech.com.br"
+};
+
+// ═══════════════════════════════════════
+//  STATE (localStorage)
+// ═══════════════════════════════════════
+function ls(k,def){try{const v=localStorage.getItem(k);return v?JSON.parse(v):def}catch{return def}}
+function lss(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}}
+
+let NUMS    = ls("kt-nums",{recibo:1001,carne:2001,promissoria:3001,nfe:4001});
+let CLIENTS = ls("kt-clients",[]);
+let COUPONS = ls("kt-coupons",[]);
+let HISTORY = ls("kt-history",[]);
+let ITEMS   = [{desc:"",qtd:1,un:"UN",valor:0}];
+
+// Current discount state per form prefix
+const DISC = {r:null, c:null, p:null, n:null};
+
+// ═══════════════════════════════════════
+//  SAVE
+// ═══════════════════════════════════════
+function save(){
+  lss("kt-nums",NUMS);lss("kt-clients",CLIENTS);
+  lss("kt-coupons",COUPONS);lss("kt-history",HISTORY);
+}
+
+// ═══════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════
+const fmtBRL = v=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+const fmtDate = d=>{if(!d)return"";const[y,m,dd]=d.split("-");return`${dd}/${m}/${y}`};
+const today = ()=>new Date().toISOString().split("T")[0];
+const uid = ()=>Math.random().toString(36).slice(2,9).toUpperCase();
+const genCode = n=>{const p=(n||"KIRI").replace(/\s+/g,"").toUpperCase().slice(0,4).padEnd(4,"X");return`${p}-${uid().slice(0,5)}`};
+const pad = n=>String(n).padStart(6,"0");
+
+const EU=["","um","dois","três","quatro","cinco","seis","sete","oito","nove"];
+const EE=["dez","onze","doze","treze","catorze","quinze","dezesseis","dezessete","dezoito","dezenove"];
+const ED=["","","vinte","trinta","quarenta","cinquenta","sessenta","setenta","oitenta","noventa"];
+const EC=["","cem","duzentos","trezentos","quatrocentos","quinhentos","seiscentos","setecentos","oitocentos","novecentos"];
+function toW(n){
+  if(!n)return"";if(n<10)return EU[n];if(n<20)return EE[n-10];
+  if(n<100)return ED[Math.floor(n/10)]+(n%10?" e "+EU[n%10]:"");
+  if(n===100)return"cem";
+  if(n<1000)return EC[Math.floor(n/100)]+(n%100?" e "+toW(n%100):"");
+  if(n<1000000)return toW(Math.floor(n/1000))+" mil"+(n%1000?" e "+toW(n%1000):"");
+  return n.toString();
+}
+function extenso(v){
+  const val=parseFloat(v)||0,int=Math.floor(val),cts=Math.round((val-int)*100);
+  const pi=int===0?"zero reais":toW(int)+(int===1?" real":" reais");
+  const pc=cts>0?" e "+toW(cts)+(cts===1?" centavo":" centavos"):"";
+  const r=pi+pc;return r.charAt(0).toUpperCase()+r.slice(1);
+}
+
+function showToast(msg,ok=true){
+  const t=document.getElementById("toast");
+  t.textContent=(ok?"✅ ":"❌ ")+msg;
+  t.style.background=ok?"#111":"#cc0000";
+  t.style.opacity="1";
+  setTimeout(()=>t.style.opacity="0",3000);
+}
+
+// ═══════════════════════════════════════
+//  NAV
+// ═══════════════════════════════════════
+document.querySelectorAll(".nav-btn").forEach(b=>{
+  b.addEventListener("click",()=>{
+    document.querySelectorAll(".nav-btn").forEach(x=>x.classList.remove("active"));
+    document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
+    b.classList.add("active");
+    document.getElementById("page-"+b.dataset.page).classList.add("active");
+    if(b.dataset.page==="clients")renderClients();
+    if(b.dataset.page==="referrals")renderCoupons();
+    if(b.dataset.page==="history")renderHistory();
+  });
+});
+
+// ═══════════════════════════════════════
+//  DOC TABS
+// ═══════════════════════════════════════
+const TAB_COLORS={recibo:"#cc0000",carne:"#8b0000",promissoria:"#1a1a1a",nfe:"#333333"};
+const TAB_LABELS={recibo:"🧾 Recibo",carne:"📋 Carnê de Pagamento",promissoria:"📜 Nota Promissória",nfe:"🧮 NF-e"};
+const FORM_IDS={recibo:"form-recibo",carne:"form-carne",promissoria:"form-promissoria",nfe:"form-nfe"};
+const NUM_IDS={recibo:"recibo",carne:"carne",promissoria:"promissoria",nfe:"nfe"};
+
+document.querySelectorAll(".doc-tab").forEach(b=>{
+  b.addEventListener("click",()=>{
+    const tab=b.dataset.tab;
+    document.querySelectorAll(".doc-tab").forEach(x=>{x.classList.remove("active");x.style.background="rgba(255,255,255,.07)";x.style.color="#888"});
+    b.classList.add("active");b.style.background=TAB_COLORS[tab];b.style.color="#fff";
+    Object.values(FORM_IDS).forEach(id=>document.getElementById(id).style.display="none");
+    document.getElementById(FORM_IDS[tab]).style.display="";
+    document.getElementById("doc-tab-title").textContent=TAB_LABELS[tab];
+    updateNextNum(tab);
+  });
+});
+
+function updateNextNum(tab){
+  document.getElementById("next-num").textContent="#"+pad(NUMS[NUM_IDS[tab]||tab]);
+}
+function refreshCounters(){
+  document.getElementById("cnt-recibo").textContent=String(NUMS.recibo).padStart(4,"0");
+  document.getElementById("cnt-carne").textContent=String(NUMS.carne).padStart(4,"0");
+  document.getElementById("cnt-prom").textContent=String(NUMS.promissoria).padStart(4,"0");
+  document.getElementById("cnt-nfe").textContent=String(NUMS.nfe).padStart(4,"0");
+  const avail=COUPONS.filter(c=>c.active&&!c.usedAt).length;
+  document.getElementById("doc-info-clients").textContent=CLIENTS.length+" clientes";
+  document.getElementById("doc-info-coupons").textContent=avail+" cupons disponíveis";
+}
+
+// ═══════════════════════════════════════
+//  CLIENT SELECTS
+// ═══════════════════════════════════════
+function rebuildClientSelects(){
+  const ids=["r-client","c-client","p-client","n-client","ref-indicador"];
+  ids.forEach(id=>{
+    const sel=document.getElementById(id);
+    if(!sel)return;
+    const ph=sel.options[0].text;
+    sel.innerHTML=`<option value="">${ph}</option>`;
+    CLIENTS.forEach(c=>{
+      const o=document.createElement("option");
+      o.value=c.id;o.textContent=c.nome+(c.cpfcnpj?" | "+c.cpfcnpj:"");
+      sel.appendChild(o);
+    });
+  });
+}
+
+function fillClient(prefix){
+  const selId={r:"r-client",c:"c-client",p:"p-client",n:"n-client"}[prefix];
+  const cid=document.getElementById(selId).value;
+  if(!cid)return;
+  const cl=CLIENTS.find(x=>x.id===cid);if(!cl)return;
+  const m={
+    r:{nome:"r-pagador",cpf:"r-cpfcnpj"},
+    c:{nome:"c-devedor",cpf:"c-cpfcnpj"},
+    p:{nome:"p-emitente",cpf:"p-cpfcnpj",end:"p-endereco"},
+    n:{nome:"n-tomador",cpf:"n-cpfcnpj",end:"n-endereco"}
+  }[prefix];
+  if(m.nome)document.getElementById(m.nome).value=cl.nome;
+  if(m.cpf)document.getElementById(m.cpf).value=cl.cpfcnpj||"";
+  if(m.end)document.getElementById(m.end).value=cl.endereco||"";
+}
+
+// ═══════════════════════════════════════
+//  DISCOUNT
+// ═══════════════════════════════════════
+function applyDiscount(prefix){
+  const codeEl=document.getElementById(prefix+"-coupon-code");
+  const errEl=document.getElementById(prefix+"-disc-err");
+  const code=codeEl.value.toUpperCase().trim();
+  const coupon=COUPONS.find(c=>c.code===code&&c.active&&!c.usedAt);
+  if(!coupon){errEl.textContent="Código inválido ou já utilizado.";errEl.style.display="";return;}
+  errEl.style.display="none";
+  DISC[prefix]=coupon;
+  document.getElementById(prefix+"-disc-input").style.display="none";
+  document.getElementById(prefix+"-disc-applied").style.display="flex";
+  document.getElementById(prefix+"-disc-tag").textContent=`✓ ${coupon.pct}% OFF — ${coupon.code} — Indicado por: ${coupon.indicadorNome}`;
+  updateDiscount(prefix);
+}
+
+function removeDiscount(prefix){
+  DISC[prefix]=null;
+  document.getElementById(prefix+"-disc-input").style.display="flex";
+  document.getElementById(prefix+"-disc-applied").style.display="none";
+  document.getElementById(prefix+"-disc-preview").style.display="none";
+  const cc=document.getElementById(prefix+"-coupon-code");if(cc)cc.value="";
+}
+
+function updateDiscount(prefix){
+  const disc=DISC[prefix];
+  const prev=document.getElementById(prefix+"-disc-preview");
+  if(!disc||!prev){if(prev)prev.style.display="none";return;}
+  const valId={r:"r-valor",c:"c-valor",p:"p-valor",n:null}[prefix];
+  let orig=0;
+  if(valId)orig=parseFloat(document.getElementById(valId).value)||0;
+  else if(prefix==="n")orig=calcItemsTotal();
+  if(!orig){prev.style.display="none";return;}
+  const final=orig*(1-disc.pct/100);
+  prev.style.display="";
+  prev.innerHTML=`Valor original: <s>${fmtBRL(orig)}</s> → <strong style="color:#cc0000">${fmtBRL(final)}</strong> (desconto de ${disc.pct}%)`;
+}
+
+// ═══════════════════════════════════════
+//  ITEMS (NFe)
+// ═══════════════════════════════════════
+function addItem(){
+  ITEMS.push({desc:"",qtd:1,un:"UN",valor:0});
+  renderItems();
+}
+function removeItem(i){
+  if(ITEMS.length===1)return;
+  ITEMS.splice(i,1);renderItems();
+}
+function renderItems(){
+  const list=document.getElementById("items-list");
+  list.innerHTML="";
+  ITEMS.forEach((it,i)=>{
+    const row=document.createElement("div");
+    row.className="item-row";
+    row.innerHTML=`
+      <div>${i===0?'<label class="lbl">Descrição</label>':""}<input type="text" value="${it.desc}" oninput="ITEMS[${i}].desc=this.value"></div>
+      <div>${i===0?'<label class="lbl">Qtd</label>':""}<input type="number" value="${it.qtd}" min="1" oninput="ITEMS[${i}].qtd=parseFloat(this.value)||0;recalcItems()"></div>
+      <div>${i===0?'<label class="lbl">Un</label>':""}<input type="text" value="${it.un}" oninput="ITEMS[${i}].un=this.value"></div>
+      <div>${i===0?'<label class="lbl">Valor Unit.</label>':""}<input type="number" value="${it.valor}" min="0" step="0.01" oninput="ITEMS[${i}].valor=parseFloat(this.value)||0;recalcItems()"></div>
+      <button onclick="removeItem(${i})" style="background:#cc0000;color:#fff;border:none;width:32px;height:32px;border-radius:6px;font-size:16px;${i===0?'margin-top:20px':''}">×</button>`;
+    list.appendChild(row);
+  });
+  recalcItems();
+}
+function recalcItems(){
+  const t=calcItemsTotal();
+  document.getElementById("item-total").textContent="Total: "+fmtBRL(t);
+  updateDiscount("n");
+}
+function calcItemsTotal(){
+  return ITEMS.reduce((a,it)=>a+(it.valor||0)*(it.qtd||0),0);
+}
+
+// ═══════════════════════════════════════
+//  MODAL
+// ═══════════════════════════════════════
+function openModal(html){
+  document.getElementById("modal-content").innerHTML=html;
+  document.getElementById("modal-overlay").classList.add("open");
+}
+function closeModal(){document.getElementById("modal-overlay").classList.remove("open")}
+function doPrint(){
+  const content=document.getElementById("modal-content").innerHTML;
+  const win=window.open("","_blank","width=950,height=750");
+  win.document.write(`<!DOCTYPE html><html><head><title>Documento KaririTech</title>
+  <style>
+    @media print{.no-print{display:none!important}}
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:Georgia,serif;color:#222;background:#fff;padding:28px}
+    .no-print{display:flex;gap:10px;margin-bottom:18px}
+    .btn{padding:10px 22px;border:none;border-radius:8px;cursor:pointer;font-weight:700;font-size:13px}
+    .btn-p{background:#cc0000;color:#fff}.btn-c{background:#000;color:#fff}
+    .doc-wrap{max-width:780px;margin:0 auto}
+    .doc-header{display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid #cc0000;padding-bottom:14px;margin-bottom:18px}
+    .doc-co-name{font-family:'Segoe UI',sans-serif;font-size:18px;font-weight:800;color:#000}
+    .doc-co-info{font-size:11px;color:#444;line-height:1.8}
+    .doc-badge{background:#cc0000;color:#fff;padding:5px 14px;border-radius:6px;font-size:12px;font-weight:700;letter-spacing:1px}
+    .doc-num{font-size:21px;font-weight:900;color:#cc0000}
+    .doc-value-box{background:#fff0f0;border:2px solid #cc0000;border-radius:10px;padding:16px;text-align:center;margin-bottom:16px}
+    .doc-value-main{font-size:32px;font-weight:900;color:#cc0000}
+    .doc-value-ext{font-size:12px;color:#555;margin-top:4px}
+    .doc-sign-row{display:flex;justify-content:space-between;margin-top:28px;padding-top:14px;border-top:1px dashed #ccc}
+    .doc-sign-line{border-top:1px solid #333;width:200px;margin-bottom:6px}
+    .doc-footer{margin-top:16px;border-top:1px solid #eee;padding-top:8px;font-size:10px;color:#aaa;text-align:center}
+    .doc-disc-badge{background:#cc0000;color:#fff;padding:3px 12px;border-radius:20px;font-size:11px;font-weight:700;display:inline-block}
+    table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:12px}
+    th{background:#cc0000;color:#fff;padding:8px 10px;text-align:center;font-size:11px}
+    td{padding:7px 10px;border-bottom:1px solid #eee;text-align:center}
+    .doc-obs{background:#fff5f5;border:1px solid #ffaaaa;border-radius:6px;padding:10px;font-size:12px;margin-top:8px}
+    .carne-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .carne-parcela{border:2px solid #cc0000;border-radius:10px;padding:12px;position:relative;background:#fff}
+    .carne-parcela .badge-parc{position:absolute;top:-10px;left:10px;background:#cc0000;color:#fff;font-size:10px;padding:2px 10px;border-radius:20px;font-weight:700}
+    .carne-parcela .val{font-size:18px;font-weight:800;color:#cc0000;margin-top:8px}
+  </style></head><body>
+  <div class="no-print">
+    <button class="btn btn-p" onclick="window.print()">🖨️ Imprimir / Salvar como PDF</button>
+    <button class="btn btn-c" onclick="window.close()">✕ Fechar</button>
+  </div>
+  <div class="doc-wrap">${content}</div>
+  </body></html>`);
+  win.document.close();
+}
+
+// ═══════════════════════════════════════
+//  HEADER HTML
+// ═══════════════════════════════════════
+function headerHtml(num,tipo){
+  return `<div class="doc-header">
+    <div>
+      <div class="doc-co-name">${CO.name}</div>
+      <div class="doc-co-info">
+        CNPJ: ${CO.cnpj} | IE: ${CO.ie}<br>
+        ${CO.address} | ${CO.city} | CEP: ${CO.cep}<br>
+        ${CO.phone} | ${CO.email} | ${CO.site}
+      </div>
+    </div>
+    <div style="text-align:right">
+      <div class="doc-badge">${tipo.toUpperCase()}</div>
+      <div style="margin-top:6px;font-size:12px;color:#666">Nº <span class="doc-num">${pad(num)}</span></div>
+    </div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════
+//  PRINT RECIBO
+// ═══════════════════════════════════════
+function printRecibo(){
+  const pagador=document.getElementById("r-pagador").value.trim();
+  if(!pagador){showToast("Informe o nome do pagador!",false);return;}
+  const num=NUMS.recibo;
+  const valorOrig=parseFloat(document.getElementById("r-valor").value)||0;
+  const disc=DISC["r"];
+  const valor=disc?valorOrig*(1-disc.pct/100):valorOrig;
+  const data=document.getElementById("r-data").value;
+  const cpf=document.getElementById("r-cpfcnpj").value;
+  const desc=document.getElementById("r-desc").value;
+  const forma=document.getElementById("r-forma").value;
+  const discHtml=disc?`<div style="text-align:center;margin-bottom:8px"><span class="doc-disc-badge">🎟️ Desconto de Indicação ${disc.pct}% — Cód: ${disc.code}</span></div>`:"";
+  const origHtml=disc?`<div style="font-size:12px;color:#888;text-decoration:line-through;text-align:center">Original: ${fmtBRL(valorOrig)}</div>`:"";
+  const indicHtml=disc?`| Indicado por: <strong>${disc.indicadorNome}</strong>`:"";
+  const html=`${headerHtml(num,"Recibo")}
+  ${discHtml}
+  <div class="doc-value-box">${origHtml}
+    <div class="doc-value-main">${fmtBRL(valor)}</div>
+    <div class="doc-value-ext">(${extenso(valor)})</div>
+  </div>
+  <p style="font-size:14px;line-height:2;margin-bottom:16px">
+    Recebi de <strong>${pagador}</strong>, CPF/CNPJ: <strong>${cpf||"_______________"}</strong>,
+    a importância de <strong>${fmtBRL(valor)}</strong> referente a: <em>${desc||"___________________________"}</em>.<br>
+    Forma de pagamento: <strong>${forma}</strong> ${indicHtml}
+  </p>
+  <div class="doc-sign-row">
+    <div><div class="doc-sign-line"></div><div style="font-size:12px;color:#555">${CO.name}</div><div style="font-size:11px;color:#888">CNPJ: ${CO.cnpj}</div></div>
+    <div style="text-align:right;font-size:12px">${CO.city}<br><strong>${fmtDate(data)}</strong></div>
+  </div>
+  <div class="doc-footer">KaririTech Informática · Recibo Nº ${pad(num)} · ${fmtDate(data)}</div>`;
+  openModal(html);
+  recordEmission("Recibo",num,disc);
+  NUMS.recibo++;save();refreshCounters();updateNextNum("recibo");
+}
+
+// ═══════════════════════════════════════
+//  PRINT CARNÊ
+// ═══════════════════════════════════════
+function printCarne(){
+  const devedor=document.getElementById("c-devedor").value.trim();
+  if(!devedor){showToast("Informe o nome do devedor!",false);return;}
+  const num=NUMS.carne;
+  const valorOrigTotal=parseFloat(document.getElementById("c-valor").value)||0;
+  const disc=DISC["c"];
+  const total=disc?valorOrigTotal*(1-disc.pct/100):valorOrigTotal;
+  const parcelas=Math.max(1,parseInt(document.getElementById("c-parcelas").value)||3);
+  const vp=total/parcelas;
+  const dataInicio=document.getElementById("c-data").value;
+  const diaVenc=parseInt(document.getElementById("c-diavenc").value)||10;
+  const desc=document.getElementById("c-desc").value;
+  const cpf=document.getElementById("c-cpfcnpj").value;
+  const discHtml=disc?`| <span class="doc-disc-badge">Desconto ${disc.pct}%</span>`:"";
+  const vcts=Array.from({length:parcelas},(_,i)=>{
+    const d=new Date(dataInicio+"T12:00:00");
+    d.setMonth(d.getMonth()+i);d.setDate(diaVenc);
+    return d.toLocaleDateString("pt-BR");
+  });
+  const cards=vcts.map((dt,i)=>`
+    <div class="carne-parcela">
+      <div class="badge-parc">Parcela ${i+1}/${parcelas}</div>
+      <div class="val">${fmtBRL(vp)}</div>
+      <div style="font-size:11px;color:#555;margin-top:4px">Vencimento: <strong>${dt}</strong></div>
+      <div style="font-size:10px;color:#888;margin-top:4px">${CO.name} · Nº ${pad(num+i)}</div>
+      <div style="border-top:1px dashed #ccc;margin-top:8px;padding-top:8px;display:flex;justify-content:space-between;font-size:10px;color:#999">
+        <span>✓ Pago</span><span>__/__/____</span>
+      </div>
+    </div>`).join("");
+  const html=`${headerHtml(num,"Carnê de Pagamento")}
+  <div style="margin-bottom:14px;font-size:13px;line-height:2">
+    <strong>Devedor:</strong> ${devedor} | <strong>CPF/CNPJ:</strong> ${cpf||"—"}<br>
+    <strong>Ref.:</strong> ${desc||"—"} | <strong>Total:</strong> ${fmtBRL(total)} ${discHtml}
+  </div>
+  <div class="carne-grid">${cards}</div>
+  <div style="margin-top:14px;padding:10px;background:#fff5f5;border:1px solid #ffaaaa;border-radius:8px;font-size:11px;color:#8b0000">
+    ⚠️ Após o vencimento: multa de 2% + juros de mora de 1% ao mês.
+  </div>
+  <div class="doc-footer">KaririTech Informática · Carnê Nº ${pad(num)} · ${new Date().toLocaleDateString("pt-BR")}</div>`;
+  openModal(html);
+  recordEmission("Carnê",num,disc);
+  NUMS.carne++;save();refreshCounters();updateNextNum("carne");
+}
+
+// ═══════════════════════════════════════
+//  PRINT PROMISSÓRIA
+// ═══════════════════════════════════════
+function printPromissoria(){
+  const emitente=document.getElementById("p-emitente").value.trim();
+  if(!emitente){showToast("Informe o nome do emitente!",false);return;}
+  const num=NUMS.promissoria;
+  const valorOrig=parseFloat(document.getElementById("p-valor").value)||0;
+  const disc=DISC["p"];
+  const valor=disc?valorOrig*(1-disc.pct/100):valorOrig;
+  const vencimento=document.getElementById("p-vencimento").value;
+  const data=document.getElementById("p-data").value;
+  const cpf=document.getElementById("p-cpfcnpj").value;
+  const end=document.getElementById("p-endereco").value;
+  const local=document.getElementById("p-local").value;
+  const discHtml=disc?`<div><span class="doc-disc-badge">${disc.pct}% desconto</span></div>`:"";
+  const indicHtml=disc?`| Indicado por: <strong>${disc.indicadorNome}</strong>`:"";
+  const html=`${headerHtml(num,"Nota Promissória")}
+  <div style="border:3px double #cc0000;border-radius:10px;padding:20px;margin-bottom:14px">
+    <div style="display:flex;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+      <div><div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px">Nº Promissória</div>
+        <div style="font-size:22px;font-weight:900;color:#000">${pad(num)}</div></div>
+      <div style="text-align:center"><div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px">Valor</div>
+        <div style="font-size:22px;font-weight:900;color:#cc0000">${fmtBRL(valor)}</div>${discHtml}</div>
+      <div style="text-align:right"><div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px">Vencimento</div>
+        <div style="font-size:22px;font-weight:900;color:#000">${fmtDate(vencimento)||"__/__/____"}</div></div>
+    </div>
+    <p style="font-size:13px;line-height:2">
+      No dia <strong>${fmtDate(vencimento)||"__/__/____"}</strong>, pagarei por esta <strong>NOTA PROMISSÓRIA</strong>
+      à <strong>${CO.name}</strong> (CNPJ: ${CO.cnpj}), ou à sua ordem, a quantia de
+      <strong>${fmtBRL(valor)}</strong> (<em>${extenso(valor)}</em>).
+    </p>
+    <p style="font-size:13px;line-height:2">
+      Emitente: <strong>${emitente}</strong> | CPF/CNPJ: <strong>${cpf||"_______________"}</strong> ${indicHtml}
+    </p>
+    <p style="font-size:13px">Endereço: ${end||"___________________________"}</p>
+    <div class="doc-sign-row">
+      <div><div class="doc-sign-line"></div><div style="font-size:12px;color:#555">Assinatura do Emitente</div><div style="font-size:11px;color:#888">${emitente}</div></div>
+      <div style="text-align:right;font-size:12px">${local}<br><strong>${fmtDate(data)}</strong></div>
+    </div>
+  </div>
+  <div class="doc-footer">Beneficiário: ${CO.name} · ${CO.address} · ${CO.city} · ${CO.phone}</div>`;
+  openModal(html);
+  recordEmission("Promissória",num,disc);
+  NUMS.promissoria++;save();refreshCounters();updateNextNum("promissoria");
+}
+
+// ═══════════════════════════════════════
+//  PRINT NF-E
+// ═══════════════════════════════════════
+function printNFe(){
+  const tomador=document.getElementById("n-tomador").value.trim();
+  if(!tomador){showToast("Informe o nome do tomador!",false);return;}
+  const num=NUMS.nfe;
+  const total=calcItemsTotal();
+  const disc=DISC["n"];
+  const finalTotal=disc?total*(1-disc.pct/100):total;
+  const data=document.getElementById("n-data").value;
+  const cpf=document.getElementById("n-cpfcnpj").value;
+  const end=document.getElementById("n-endereco").value;
+  const obs=document.getElementById("n-obs").value;
+  const indicHtml=disc?`<div>Indicado por: <strong>${disc.indicadorNome}</strong></div>`:"";
+  const rows=ITEMS.map((it,i)=>{
+    const sub=(it.valor||0)*(it.qtd||0);
+    return `<tr style="background:${i%2?"#f9f9f9":"#fff"}">
+      <td>${i+1}</td><td style="text-align:left">${it.desc}</td>
+      <td>${it.un}</td><td>${it.qtd}</td>
+      <td>${fmtBRL(it.valor)}</td><td style="font-weight:700">${fmtBRL(sub)}</td>
+    </tr>`;
+  }).join("");
+  const discRow=disc?`<tr style="background:#fff0f0">
+    <td colspan="5" style="text-align:right;font-weight:700;color:#cc0000">🎟️ Desconto de Indicação (${disc.pct}%)</td>
+    <td style="font-weight:700;color:#cc0000">- ${fmtBRL(total*(disc.pct/100))}</td>
+  </tr>`:"";
+  const html=`${headerHtml(num,"Nota Fiscal de Serviço")}
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;font-size:12px">
+    <div style="background:#fff0f0;border-radius:8px;padding:12px;border-left:3px solid #cc0000">
+      <div style="font-weight:700;color:#cc0000;margin-bottom:6px">📤 Prestador</div>
+      <div><strong>${CO.name}</strong></div><div>CNPJ: ${CO.cnpj} | IE: ${CO.ie}</div>
+      <div>${CO.address}</div><div>${CO.city} | CEP: ${CO.cep}</div><div>${CO.phone} | ${CO.email}</div>
+    </div>
+    <div style="background:#f5f5f5;border-radius:8px;padding:12px;border-left:3px solid #333">
+      <div style="font-weight:700;color:#222;margin-bottom:6px">📥 Tomador</div>
+      <div><strong>${tomador}</strong></div><div>CPF/CNPJ: ${cpf||"—"}</div>
+      <div>${end||"—"}</div><div style="margin-top:6px">Data: <strong>${fmtDate(data)}</strong></div>
+      ${indicHtml}
+    </div>
+  </div>
+  <table>
+    <thead><tr><th>#</th><th style="text-align:left">Descrição</th><th>Un</th><th>Qtd</th><th>Valor Unit.</th><th>Subtotal</th></tr></thead>
+    <tbody>${rows}</tbody>
+    <tfoot>${discRow}<tr><td colspan="5" style="text-align:right;font-weight:700">TOTAL${disc?" COM DESCONTO":""}</td><td style="font-weight:900;font-size:14px">${fmtBRL(finalTotal)}</td></tr></tfoot>
+  </table>
+  <div style="font-size:12px;margin-bottom:8px"><strong>Por extenso:</strong> ${extenso(finalTotal)}</div>
+  ${obs?`<div class="doc-obs"><strong>Obs.:</strong> ${obs}</div>`:""}
+  <div class="doc-footer">Documento informativo · NF-e Nº ${pad(num)} · ${CO.name} · ${CO.cnpj}</div>`;
+  openModal(html);
+  recordEmission("NF-e",num,disc);
+  NUMS.nfe++;save();refreshCounters();updateNextNum("nfe");
+}
+
+// ═══════════════════════════════════════
+//  CLIENTS CRUD
+// ═══════════════════════════════════════
+function saveClient(){
+  const nome=document.getElementById("cl-nome").value.trim();
+  if(!nome){showToast("Nome é obrigatório!",false);return;}
+  const id=document.getElementById("cl-id").value;
+  const cl={
+    id:id||uid(),nome,
+    cpfcnpj:document.getElementById("cl-cpfcnpj").value,
+    telefone:document.getElementById("cl-tel").value,
+    email:document.getElementById("cl-email").value,
+    endereco:document.getElementById("cl-end").value,
+    cidade:document.getElementById("cl-cidade").value,
+    obs:document.getElementById("cl-obs").value,
+    criadoEm:id?(CLIENTS.find(c=>c.id===id)||{}).criadoEm:new Date().toLocaleDateString("pt-BR")
+  };
+  if(id){CLIENTS=CLIENTS.map(c=>c.id===id?cl:c);showToast("Cliente atualizado!");}
+  else{CLIENTS.push(cl);showToast("Cliente cadastrado!");}
+  save();cancelClientEdit();renderClients();rebuildClientSelects();refreshCounters();
+}
+
+function cancelClientEdit(){
+  document.getElementById("cl-id").value="";
+  ["cl-nome","cl-cpfcnpj","cl-tel","cl-email","cl-end","cl-cidade","cl-obs"].forEach(id=>document.getElementById(id).value="");
+  document.getElementById("client-form-title").textContent="➕ Novo Cliente";
+  document.getElementById("cl-cancel-btn").style.display="none";
+}
+
+function editClient(id){
+  const cl=CLIENTS.find(c=>c.id===id);if(!cl)return;
+  document.getElementById("cl-id").value=cl.id;
+  document.getElementById("cl-nome").value=cl.nome;
+  document.getElementById("cl-cpfcnpj").value=cl.cpfcnpj||"";
+  document.getElementById("cl-tel").value=cl.telefone||"";
+  document.getElementById("cl-email").value=cl.email||"";
+  document.getElementById("cl-end").value=cl.endereco||"";
+  document.getElementById("cl-cidade").value=cl.cidade||"";
+  document.getElementById("cl-obs").value=cl.obs||"";
+  document.getElementById("client-form-title").textContent="✏️ Editar Cliente";
+  document.getElementById("cl-cancel-btn").style.display="";
+  document.getElementById("cl-nome").focus();
+}
+
+function deleteClient(id){
+  if(!confirm("Remover este cliente?"))return;
+  CLIENTS=CLIENTS.filter(c=>c.id!==id);
+  save();renderClients();rebuildClientSelects();showToast("Cliente removido.");
+}
+
+function renderClients(){
+  const q=(document.getElementById("cl-search").value||"").toLowerCase();
+  const filtered=CLIENTS.filter(c=>
+    c.nome.toLowerCase().includes(q)||
+    (c.cpfcnpj||"").includes(q)||
+    (c.telefone||"").includes(q)
+  );
+  document.getElementById("cl-count").textContent=filtered.length+" clientes";
+  const list=document.getElementById("clients-list");
+  if(!filtered.length){list.innerHTML='<div class="empty card">Nenhum cliente encontrado.</div>';return;}
+  list.innerHTML=filtered.map(c=>`
+    <div class="client-card">
+      <div>
+        <div style="font-weight:800;color:#cc0000;font-size:15px">${c.nome}</div>
+        <div style="font-size:12px;color:#666;margin-top:4px;line-height:1.9">
+          ${c.cpfcnpj?`<span>CPF/CNPJ: ${c.cpfcnpj} &nbsp;·&nbsp; </span>`:""}
+          ${c.telefone?`<span>📱 ${c.telefone} &nbsp;·&nbsp; </span>`:""}
+          ${c.email?`<span>✉️ ${c.email}</span>`:""}
+          ${c.endereco?`<br>${c.endereco}${c.cidade?" — "+c.cidade:""}`:""}
+          ${c.criadoEm?`<br><span style="color:#bbb">Cadastrado em ${c.criadoEm}</span>`:""}
+        </div>
+      </div>
+      <div class="tbl-actions">
+        <button class="btn btn-primary btn-sm" onclick="editClient('${c.id}')">✏️ Editar</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteClient('${c.id}')">🗑️</button>
+      </div>
+    </div>`).join("");
+}
+
+// ═══════════════════════════════════════
+//  COUPONS
+// ═══════════════════════════════════════
+let currentPct=10;
+function setPct(p){
+  currentPct=p;
+  document.getElementById("ref-pct").value=p;
+  document.querySelectorAll(".pct-btn").forEach(b=>{
+    const active=parseInt(b.dataset.pct)===p;
+    b.style.border=active?"2px solid #cc0000":"2px solid #dde";
+    b.style.background=active?"#fff0f0":"#fff";
+    b.style.color=active?"#cc0000":"#555";
+  });
+}
+document.getElementById("ref-pct").addEventListener("input",function(){currentPct=parseInt(this.value)||10;});
+
+function generateCoupon(){
+  const indId=document.getElementById("ref-indicador").value;
+  if(!indId){showToast("Selecione o indicador!",false);return;}
+  const ind=CLIENTS.find(c=>c.id===indId);
+  const code=genCode(ind.nome);
+  const coupon={
+    id:uid(),code,
+    indicadorId:ind.id,indicadorNome:ind.nome,
+    indicadoNome:document.getElementById("ref-indicado").value,
+    pct:currentPct,
+    validade:document.getElementById("ref-validade").value,
+    criadoEm:new Date().toLocaleDateString("pt-BR"),
+    active:true,usedAt:null
+  };
+  COUPONS.unshift(coupon);
+  save();renderCoupons();showToast(`Cupom ${code} gerado com sucesso!`);
+  document.getElementById("ref-indicado").value="";
+  document.getElementById("ref-validade").value="";
+}
+
+function toggleCoupon(id){
+  COUPONS=COUPONS.map(c=>c.id===id?{...c,active:!c.active}:c);
+  save();renderCoupons();
+}
+
+function deleteCoupon(id){
+  if(!confirm("Remover este cupom?"))return;
+  COUPONS=COUPONS.filter(c=>c.id!==id);
+  save();renderCoupons();showToast("Cupom removido.");
+}
+
+function copyCoupon(code){
+  if(navigator.clipboard){navigator.clipboard.writeText(code);}
+  else{const ta=document.createElement("textarea");ta.value=code;document.body.appendChild(ta);ta.select();document.execCommand("copy");document.body.removeChild(ta);}
+  showToast(`Código ${code} copiado!`);
+}
+
+function renderCoupons(){
+  const list=document.getElementById("coupons-list");
+  const total=COUPONS.length;
+  const avail=COUPONS.filter(c=>c.active&&!c.usedAt).length;
+  document.getElementById("coupon-count-total").textContent=total+" total";
+  document.getElementById("coupon-count-active").textContent=avail+" disponíveis";
+  if(!total){list.innerHTML='<div class="empty card">Nenhum cupom gerado ainda.</div>';return;}
+  list.innerHTML=COUPONS.map(c=>`
+    <div class="coupon-card" style="border-left-color:${c.usedAt?"#ccc":c.active?"#cc0000":"#aaa"}">
+      <div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+          <span class="coupon-code">${c.code}</span>
+          <span class="tag" style="background:${c.usedAt?"#f3f4f6":c.active?"#fee2e2":"#fef3c7"};color:${c.usedAt?"#888":c.active?"#cc0000":"#b45309"}">
+            ${c.usedAt?"Usado":c.active?"Ativo":"Inativo"}
+          </span>
+          <span class="tag" style="background:#fee2e2;color:#cc0000">${c.pct}% OFF</span>
+        </div>
+        <div style="font-size:12px;color:#666;line-height:1.9">
+          👤 Indicador: <strong>${c.indicadorNome}</strong>
+          ${c.indicadoNome?` · 🆕 Indicado: <strong>${c.indicadoNome}</strong>`:""}
+          <br>📅 Criado em ${c.criadoEm}
+          ${c.validade?` · Válido até ${fmtDate(c.validade)}`:""}
+          ${c.usedAt?` · <span style="color:#cc0000">Usado em ${c.usedAt}</span>`:""}
+        </div>
+      </div>
+      <div class="tbl-actions" style="flex-shrink:0">
+        <button class="btn btn-primary btn-sm" onclick="copyCoupon('${c.code}')">📋 Copiar</button>
+        ${!c.usedAt?`<button class="btn btn-sm" style="background:${c.active?"#333":"#cc0000"};color:#fff" onclick="toggleCoupon('${c.id}')">${c.active?"Desativar":"Ativar"}</button>`:""}
+        <button class="btn btn-danger btn-sm" onclick="deleteCoupon('${c.id}')">🗑️</button>
+      </div>
+    </div>`).join("");
+}
+
+// ═══════════════════════════════════════
+//  HISTORY
+// ═══════════════════════════════════════
+function recordEmission(tipo,num,disc){
+  if(disc){
+    COUPONS=COUPONS.map(c=>c.code===disc.code?{...c,usedAt:new Date().toLocaleDateString("pt-BR")}:c);
+  }
+  HISTORY.unshift({tipo,num,data:new Date().toLocaleString("pt-BR"),discount:disc?.pct,discCode:disc?.code});
+  if(HISTORY.length>200)HISTORY=HISTORY.slice(0,200);
+  save();
+}
+
+function clearHistory(){
+  if(!confirm("Limpar todo o histórico?"))return;
+  HISTORY=[];save();renderHistory();showToast("Histórico limpo.");
+}
+
+const TIPO_COLOR={Recibo:"#cc0000",Carnê:"#8b0000",Promissória:"#333","NF-e":"#111"};
+
+function renderHistory(){
+  const list=document.getElementById("history-list");
+  if(!HISTORY.length){list.innerHTML='<div class="empty card">Nenhum documento emitido ainda.</div>';return;}
+  list.innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px">
+    ${HISTORY.map(h=>`
+      <div class="card" style="padding:14px;border-left:4px solid ${TIPO_COLOR[h.tipo]||"#cc0000"}">
+        <div style="font-weight:700;color:#cc0000;font-size:13px">${h.tipo}</div>
+        <div style="font-size:20px;font-weight:900;color:${TIPO_COLOR[h.tipo]||"#cc0000"}">#${pad(h.num)}</div>
+        <div style="font-size:11px;color:#888;margin-top:4px">${h.data}</div>
+        ${h.discount?`<span class="tag" style="background:#fee2e2;color:#cc0000;margin-top:4px;display:inline-block">${h.discount}% desconto</span>`:""}
+      </div>`).join("")}
+  </div>`;
+}
+
+// ═══════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════
+function init(){
+  // Set today on date fields
+  const d=today();
+  ["r-data","c-data","p-data","n-data"].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.value=d;
+  });
+  // Init items
+  renderItems();
+  // Build selects
+  rebuildClientSelects();
+  // Counters
+  refreshCounters();
+  updateNextNum("recibo");
+}
+
+// Close modal on overlay click
+document.getElementById("modal-overlay").addEventListener("click",function(e){
+  if(e.target===this)closeModal();
+});
+
+init();
+</script>
+</body>
+</html>
