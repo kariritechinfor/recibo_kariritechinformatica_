@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kariritech Informática — Sistema de Recibos</title>
+<title>KaririTech Informática — Sistema de Recibos</title>
 <style>
 /* ── RESET & BASE ── */
 *{margin:0;padding:0;box-sizing:border-box}
@@ -190,7 +190,7 @@ tr:hover td{background:#fdf0f4}
   <div class="brand">
     <div style="display:flex;flex-direction:column;line-height:1.2">
       <div style="font-size:21px;font-weight:900;letter-spacing:1.5px;font-family:'Segoe UI',sans-serif">
-        <span style="color:#fff">Kariritech</span><span style="color:#87042e"> Informática</span>
+        <span style="color:#fff">KARIRITECH</span><span style="color:#87042e"> Informática</span>
       </div>
       <div style="font-size:9px;color:#666;letter-spacing:1.5px;margin-top:2px;font-family:'Segoe UI',sans-serif">Conecte-se com a tecnologia e as melhores soluções</div>
     </div>
@@ -201,6 +201,7 @@ tr:hover td{background:#fdf0f4}
     <button class="nav-btn" data-page="referrals">🎟️ Indicações</button>
     <button class="nav-btn" data-page="history">📋 Histórico</button>
     <button class="nav-btn" data-page="manage">🗑️ Gerenciar</button>
+    <button class="nav-btn" data-page="etiquetas">🏷️ Etiquetas</button>
   </nav>
   <div id="counters">
     <div class="cnt"><div class="num" id="cnt-recibo" style="color:#87042e">0000</div><div class="lbl">Recibos</div></div>
@@ -522,6 +523,108 @@ tr:hover td{background:#fdf0f4}
     <div id="manage-list"><div class="empty card">Nenhum documento emitido ainda.</div></div>
   </div>
 
+  <!-- ══ ETIQUETAS ══ -->
+  <div class="page" id="page-etiquetas">
+    <h2 style="color:#fff;font-size:20px;font-weight:800;margin-bottom:4px">🏷️ Etiquetas de Preço</h2>
+    <p style="color:#888;font-size:13px;margin-bottom:18px">Cadastre produtos e gere etiquetas para impressão.</p>
+    <div style="display:grid;grid-template-columns:360px 1fr;gap:20px">
+
+      <!-- LEFT: FORM -->
+      <div>
+        <!-- PRODUCT FORM -->
+        <div class="card" style="margin-bottom:0">
+          <div id="etiq-form-title" class="card-title" style="margin-bottom:14px">➕ Novo Produto</div>
+          <input type="hidden" id="etiq-id">
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div><label class="lbl">Nome do Produto *</label><input type="text" id="etiq-nome" placeholder="Ex: Notebook Dell i5"></div>
+            <div><label class="lbl">Código / SKU</label><input type="text" id="etiq-sku" placeholder="Ex: NB-001 ou código de barras"></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <div><label class="lbl">Preço (R$) *</label><input type="number" id="etiq-preco" min="0" step="0.01" oninput="updateEtiqPreview()"></div>
+              <div><label class="lbl">Preço Promo (R$)</label><input type="number" id="etiq-promo" min="0" step="0.01" placeholder="Opcional" oninput="updateEtiqPreview()"></div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <div><label class="lbl">Categoria</label>
+                <select id="etiq-cat">
+                  <option>Informática</option><option>Periféricos</option><option>Acessórios</option>
+                  <option>Redes</option><option>Impressão</option><option>Cabos</option>
+                  <option>Armazenamento</option><option>Eletrônicos</option><option>Serviços</option><option>Outros</option>
+                </select>
+              </div>
+              <div><label class="lbl">Estoque</label><input type="number" id="etiq-estoque" min="0" value="1"></div>
+            </div>
+            <div><label class="lbl">Unidade</label>
+              <select id="etiq-un"><option>UN</option><option>CX</option><option>KIT</option><option>PAR</option><option>PCT</option><option>M</option></select>
+            </div>
+            <div><label class="lbl">Descrição curta (opcional)</label><input type="text" id="etiq-desc" placeholder="Ex: Core i5, 8GB RAM, SSD 256GB"></div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-success btn-full" onclick="saveProduto()">✅ Salvar Produto</button>
+              <button class="btn btn-danger btn-sm" id="etiq-cancel-btn" onclick="cancelEtiqEdit()" style="display:none">✕</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: PRODUCTS + CONFIG -->
+      <div>
+        <!-- LABEL CONFIG -->
+        <div class="card" style="margin-bottom:16px;padding:16px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+            <strong style="color:#87042e;font-size:14px">⚙️ Configurar Etiquetas</strong>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-primary btn-sm" onclick="printEtiquetas('a4')">🖨️ Imprimir A4</button>
+              <button class="btn btn-sm" style="background:#5c0020;color:#fff" onclick="printEtiquetas('termica')">🧾 Térmica</button>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px">
+            <div><label class="lbl">Modelo</label>
+              <select id="etiq-modelo" onchange="updateEtiqPreview()">
+                <option value="simples">Simples</option>
+                <option value="promo">Com Promoção</option>
+                <option value="completa">Completa</option>
+                <option value="mini">Mini</option>
+              </select>
+            </div>
+            <div><label class="lbl">Colunas A4</label>
+              <select id="etiq-cols">
+                <option value="2">2 colunas</option>
+                <option value="3" selected>3 colunas</option>
+                <option value="4">4 colunas</option>
+              </select>
+            </div>
+            <div><label class="lbl">Mostrar SKU</label>
+              <select id="etiq-show-sku" onchange="updateEtiqPreview()">
+                <option value="sim">✅ Sim</option><option value="nao">❌ Não</option>
+              </select>
+            </div>
+            <div><label class="lbl">Mostrar Logo</label>
+              <select id="etiq-show-logo" onchange="updateEtiqPreview()">
+                <option value="sim">✅ Sim</option><option value="nao">❌ Não</option>
+              </select>
+            </div>
+          </div>
+          <!-- LIVE PREVIEW -->
+          <div style="background:#f5f5f5;border-radius:8px;padding:12px;border:1px dashed #ddd">
+            <div style="font-size:11px;color:#888;font-weight:600;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px">Pré-visualização da Etiqueta</div>
+            <div id="etiq-preview-wrap" style="display:flex;justify-content:center"></div>
+          </div>
+        </div>
+
+        <!-- PRODUCT LIST -->
+        <div class="card" style="padding:16px">
+          <div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap">
+            <input type="text" id="etiq-search" placeholder="🔍 Buscar produto..." oninput="renderProdutos()" style="flex:1;min-width:160px">
+            <span class="tag" style="background:#1a1a1a;color:#aaa" id="etiq-count">0 produtos</span>
+            <div style="display:flex;align-items:center;gap:6px">
+              <input type="checkbox" id="etiq-select-all" onchange="toggleSelectAll(this.checked)" style="width:16px;height:16px;cursor:pointer">
+              <label for="etiq-select-all" style="font-size:12px;color:#555;font-weight:600;cursor:pointer">Sel. todos</label>
+            </div>
+          </div>
+          <div id="produtos-list"><div class="empty">Nenhum produto cadastrado.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <!-- MODAL PREVIEW -->
@@ -549,15 +652,15 @@ tr:hover td{background:#fdf0f4}
 //  EMPRESA
 // ═══════════════════════════════════════
 const CO = {
-  name:"Kariritech Informática",
-  cnpj:"56.608.837/0001-60",
+  name:"KaririTech Informática",
+  cnpj:"00.000.000/0001-00",
   ie:"000.000.000.000",
-  address:"Rua Otonio Lira Cruz, 180 – João Cabral",
+  address:"Rua das Tecnologias, 123 – Centro",
   city:"Juazeiro do Norte – CE",
-  cep:"63051-180",
-  phone:"(88) 2131.9871",
-  email:"financeiro.kariritech@outlook.com",
-  site:"em construção"
+  cep:"63010-000",
+  phone:"(88) 9 9999-9999",
+  email:"contato@kariritech.com.br",
+  site:"www.kariritech.com.br"
 };
 
 // ═══════════════════════════════════════
@@ -582,6 +685,7 @@ function save(){
   lss("kt-nums",NUMS);lss("kt-clients",CLIENTS);
   lss("kt-coupons",COUPONS);lss("kt-history",HISTORY);
 }
+function saveProdutosAlias(){ lss("kt-produtos",PRODUTOS); }
 
 // ═══════════════════════════════════════
 //  HELPERS
@@ -633,6 +737,7 @@ document.querySelectorAll(".nav-btn").forEach(b=>{
     if(b.dataset.page==="referrals")renderCoupons();
     if(b.dataset.page==="history")renderHistory();
     if(b.dataset.page==="manage"){currentManageFilter="Todos";renderManage();}
+    if(b.dataset.page==="etiquetas"){renderProdutos();updateEtiqPreview();}
   });
 });
 
@@ -1441,6 +1546,294 @@ function init(){
   // Counters
   refreshCounters();
   updateNextNum("recibo");
+  // Etiquetas
+  renderProdutos();
+  updateEtiqPreview();
+}
+
+
+// ═══════════════════════════════════════
+//  ETIQUETAS DE PREÇO
+// ═══════════════════════════════════════
+let PRODUTOS = ls("kt-produtos",[]);
+let ETIQ_SELECTED = new Set();
+
+function saveProdutos(){ lss("kt-produtos", PRODUTOS); }
+
+// ── CRUD ────────────────────────────────
+function saveProduto(){
+  const nome = document.getElementById("etiq-nome").value.trim();
+  if(!nome){showToast("Nome do produto é obrigatório!",false);return;}
+  const preco = parseFloat(document.getElementById("etiq-preco").value)||0;
+  if(!preco){showToast("Informe o preço!",false);return;}
+  const id = document.getElementById("etiq-id").value;
+  const prod = {
+    id: id||uid(),
+    nome,
+    sku:     document.getElementById("etiq-sku").value,
+    preco,
+    promo:   parseFloat(document.getElementById("etiq-promo").value)||0,
+    cat:     document.getElementById("etiq-cat").value,
+    estoque: parseInt(document.getElementById("etiq-estoque").value)||0,
+    un:      document.getElementById("etiq-un").value,
+    desc:    document.getElementById("etiq-desc").value,
+    criadoEm: id?(PRODUTOS.find(p=>p.id===id)||{}).criadoEm:new Date().toLocaleDateString("pt-BR")
+  };
+  if(id){ PRODUTOS = PRODUTOS.map(p=>p.id===id?prod:p); showToast("Produto atualizado!"); }
+  else  { PRODUTOS.push(prod); showToast("Produto cadastrado!"); }
+  saveProdutos(); cancelEtiqEdit(); renderProdutos(); updateEtiqPreview();
+}
+
+function cancelEtiqEdit(){
+  document.getElementById("etiq-id").value="";
+  ["etiq-nome","etiq-sku","etiq-preco","etiq-promo","etiq-desc"].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value="";
+  });
+  document.getElementById("etiq-estoque").value="1";
+  document.getElementById("etiq-form-title").textContent="➕ Novo Produto";
+  document.getElementById("etiq-cancel-btn").style.display="none";
+  ETIQ_SELECTED.clear();
+}
+
+function editProduto(id){
+  const p=PRODUTOS.find(x=>x.id===id); if(!p) return;
+  document.getElementById("etiq-id").value=p.id;
+  document.getElementById("etiq-nome").value=p.nome;
+  document.getElementById("etiq-sku").value=p.sku||"";
+  document.getElementById("etiq-preco").value=p.preco;
+  document.getElementById("etiq-promo").value=p.promo||"";
+  document.getElementById("etiq-cat").value=p.cat||"Informática";
+  document.getElementById("etiq-estoque").value=p.estoque||1;
+  document.getElementById("etiq-un").value=p.un||"UN";
+  document.getElementById("etiq-desc").value=p.desc||"";
+  document.getElementById("etiq-form-title").textContent="✏️ Editar Produto";
+  document.getElementById("etiq-cancel-btn").style.display="";
+  updateEtiqPreview();
+  document.getElementById("etiq-nome").focus();
+  document.querySelector('[data-page="etiquetas"]').click();
+}
+
+function deleteProduto(id){
+  if(!confirm("Remover este produto?")) return;
+  PRODUTOS = PRODUTOS.filter(p=>p.id!==id);
+  ETIQ_SELECTED.delete(id);
+  saveProdutos(); renderProdutos(); showToast("Produto removido.");
+}
+
+function toggleSelectAll(checked){
+  const q=(document.getElementById("etiq-search").value||"").toLowerCase();
+  const filtered=PRODUTOS.filter(p=>!q||p.nome.toLowerCase().includes(q)||(p.sku||"").toLowerCase().includes(q));
+  filtered.forEach(p=>{ if(checked) ETIQ_SELECTED.add(p.id); else ETIQ_SELECTED.delete(p.id); });
+  renderProdutos();
+}
+
+// ── RENDER ──────────────────────────────
+function renderProdutos(){
+  const q=(document.getElementById("etiq-search")?.value||"").toLowerCase();
+  const filtered=PRODUTOS.filter(p=>!q||p.nome.toLowerCase().includes(q)||(p.sku||"").toLowerCase().includes(q)||(p.cat||"").toLowerCase().includes(q));
+  const countEl=document.getElementById("etiq-count");
+  if(countEl) countEl.textContent=filtered.length+" produtos";
+  const list=document.getElementById("produtos-list");
+  if(!list) return;
+  if(!filtered.length){ list.innerHTML='<div class="empty">Nenhum produto encontrado.</div>'; return; }
+  list.innerHTML = `<div style="display:flex;flex-direction:column;gap:8px">
+    ${filtered.map(p=>{
+      const sel = ETIQ_SELECTED.has(p.id);
+      const temPromo = p.promo && p.promo < p.preco;
+      return `<div style="display:flex;align-items:center;gap:10px;padding:12px;border-radius:10px;border:1.5px solid ${sel?"#87042e":"#e8e8e8"};background:${sel?"#fdf0f4":"#fff"};cursor:pointer" onclick="toggleSelect('${p.id}')">
+        <input type="checkbox" ${sel?"checked":""} onclick="event.stopPropagation();toggleSelect('${p.id}')" style="width:16px;height:16px;cursor:pointer;accent-color:#87042e">
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700;color:#111;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.nome}</div>
+          <div style="font-size:11px;color:#888;margin-top:1px">
+            ${p.sku?`<span style="background:#f0f0f0;padding:1px 6px;border-radius:4px;margin-right:4px">${p.sku}</span>`:""}
+            <span style="background:#fdf0f4;color:#87042e;padding:1px 6px;border-radius:4px;margin-right:4px">${p.cat}</span>
+            <span>Estoque: ${p.estoque} ${p.un}</span>
+          </div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          ${temPromo?`<div style="font-size:10px;color:#999;text-decoration:line-through">${fmtBRL(p.preco)}</div><div style="font-size:15px;font-weight:900;color:#87042e">${fmtBRL(p.promo)}</div>`
+                    :`<div style="font-size:15px;font-weight:900;color:#87042e">${fmtBRL(p.preco)}</div>`}
+        </div>
+        <div style="display:flex;gap:5px;flex-shrink:0" onclick="event.stopPropagation()">
+          <button class="btn btn-primary btn-sm" onclick="editProduto('${p.id}')">✏️</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteProduto('${p.id}')">🗑️</button>
+        </div>
+      </div>`;
+    }).join("")}
+  </div>`;
+}
+
+function toggleSelect(id){
+  if(ETIQ_SELECTED.has(id)) ETIQ_SELECTED.delete(id);
+  else ETIQ_SELECTED.add(id);
+  renderProdutos();
+  updateEtiqPreview();
+}
+
+// ── LABEL BUILDER ────────────────────────
+function buildEtiqueta(p, modelo, showSku, showLogo, width="180px"){
+  const temPromo = p.promo && p.promo > 0 && p.promo < p.preco;
+  const logoHtml = showLogo==="sim"
+    ?`<div style="font-size:9px;font-weight:900;letter-spacing:1px;margin-bottom:3px"><span style="color:#fff">KARIRITECH</span><span style="color:#87042e"> Informática</span></div>`
+    :"";
+  const skuHtml = showSku==="sim" && p.sku
+    ?`<div style="font-size:9px;color:#aaa;font-family:Consolas,monospace;margin-bottom:2px">${p.sku}</div>`:"";
+
+  const baseStyle = `display:inline-block;width:${width};font-family:'Segoe UI',sans-serif;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.15);`;
+
+  if(modelo==="simples"){
+    return `<div style="${baseStyle}background:#fff;border:1.5px solid #87042e">
+      <div style="background:#87042e;padding:5px 8px">${logoHtml}<div style="font-size:10px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.nome}</div></div>
+      <div style="padding:8px;text-align:center">
+        ${skuHtml}
+        <div style="font-size:22px;font-weight:900;color:#87042e">${fmtBRL(p.preco)}</div>
+        ${p.desc?`<div style="font-size:9px;color:#777;margin-top:2px">${p.desc}</div>`:""}
+      </div>
+    </div>`;
+  }
+  if(modelo==="promo"){
+    return `<div style="${baseStyle}background:#fff;border:2px solid #87042e">
+      <div style="background:#87042e;padding:5px 8px">${logoHtml}<div style="font-size:10px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.nome}</div></div>
+      <div style="padding:8px;text-align:center">
+        ${skuHtml}
+        ${temPromo
+          ?`<div style="font-size:9px;color:#999;text-decoration:line-through">De: ${fmtBRL(p.preco)}</div>
+            <div style="background:#87042e;color:#fff;font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px;display:inline-block;margin:2px 0">PROMOÇÃO</div>
+            <div style="font-size:24px;font-weight:900;color:#87042e">${fmtBRL(p.promo)}</div>`
+          :`<div style="font-size:22px;font-weight:900;color:#87042e">${fmtBRL(p.preco)}</div>`}
+        ${p.desc?`<div style="font-size:9px;color:#777;margin-top:2px">${p.desc}</div>`:""}
+      </div>
+    </div>`;
+  }
+  if(modelo==="completa"){
+    return `<div style="${baseStyle}background:#fff;border:1.5px solid #333">
+      <div style="background:linear-gradient(135deg,#1a1a1a,#87042e);padding:6px 8px">${logoHtml}<div style="font-size:10px;font-weight:700;color:#fff">${p.nome}</div></div>
+      <div style="padding:8px">
+        ${skuHtml}
+        ${temPromo
+          ?`<div style="display:flex;align-items:center;justify-content:center;gap:6px">
+              <div style="font-size:10px;color:#999;text-decoration:line-through">${fmtBRL(p.preco)}</div>
+              <div style="font-size:20px;font-weight:900;color:#87042e">${fmtBRL(p.promo)}</div>
+            </div>`
+          :`<div style="font-size:22px;font-weight:900;color:#87042e;text-align:center">${fmtBRL(p.preco)}</div>`}
+        ${p.desc?`<div style="font-size:9px;color:#777;margin-top:3px;border-top:1px solid #f0f0f0;padding-top:3px">${p.desc}</div>`:""}
+        <div style="display:flex;justify-content:space-between;margin-top:4px;font-size:8px;color:#aaa">
+          <span>${p.cat}</span><span>${p.un}</span>
+        </div>
+      </div>
+    </div>`;
+  }
+  // mini
+  return `<div style="${baseStyle}background:#fff;border:1px solid #87042e;width:120px !important">
+    <div style="background:#87042e;padding:3px 6px;font-size:8px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.nome}</div>
+    <div style="padding:4px;text-align:center">
+      ${skuHtml}
+      <div style="font-size:16px;font-weight:900;color:#87042e">${temPromo?fmtBRL(p.promo):fmtBRL(p.preco)}</div>
+    </div>
+  </div>`;
+}
+
+// ── PREVIEW ─────────────────────────────
+function updateEtiqPreview(){
+  const wrap = document.getElementById("etiq-preview-wrap");
+  if(!wrap) return;
+  const modelo   = (document.getElementById("etiq-modelo")||{value:"simples"}).value;
+  const showSku  = (document.getElementById("etiq-show-sku")||{value:"sim"}).value;
+  const showLogo = (document.getElementById("etiq-show-logo")||{value:"sim"}).value;
+
+  // Use selected products or first product or a demo
+  let previewProds = PRODUTOS.filter(p=>ETIQ_SELECTED.has(p.id)).slice(0,2);
+  if(!previewProds.length && PRODUTOS.length) previewProds = [PRODUTOS[0]];
+  if(!previewProds.length){
+    previewProds = [{id:"demo",nome:"Produto Exemplo",sku:"PRD-001",preco:149.90,promo:99.90,cat:"Informática",un:"UN",desc:"Descrição do produto"}];
+  }
+  wrap.innerHTML = `<div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
+    ${previewProds.map(p=>buildEtiqueta(p,modelo,showSku,showLogo,"160px")).join("")}
+  </div>`;
+}
+
+// ── PRINT ────────────────────────────────
+function printEtiquetas(formato){
+  const modelo   = document.getElementById("etiq-modelo").value;
+  const showSku  = document.getElementById("etiq-show-sku").value;
+  const showLogo = document.getElementById("etiq-show-logo").value;
+  const cols     = parseInt(document.getElementById("etiq-cols").value)||3;
+
+  let prods = PRODUTOS.filter(p=>ETIQ_SELECTED.has(p.id));
+  if(!prods.length){ showToast("Selecione ao menos um produto!",false); return; }
+
+  const isTerm = formato==="termica";
+
+  const labels = prods.map(p=>{
+    const temPromo = p.promo && p.promo > 0 && p.promo < p.preco;
+    const logoHtml = showLogo==="sim"?`<div class="lbl-brand"><span class="brand-w">KARIRITECH</span><span class="brand-r"> Informática</span></div>`:"";
+    const skuHtml  = showSku==="sim" && p.sku?`<div class="lbl-sku">${p.sku}</div>`:"";
+    if(modelo==="mini") return `<div class="etq etq-mini">
+      <div class="etq-head">${p.nome}</div>
+      <div class="etq-body">${skuHtml}<div class="etq-price">${temPromo?fmtBRL(p.promo):fmtBRL(p.preco)}</div></div>
+    </div>`;
+    if(modelo==="promo") return `<div class="etq etq-promo">
+      <div class="etq-head">${logoHtml}<span>${p.nome}</span></div>
+      <div class="etq-body">${skuHtml}
+        ${temPromo?`<div class="etq-old">De: ${fmtBRL(p.preco)}</div><div class="etq-badge">PROMOÇÃO</div><div class="etq-price">${fmtBRL(p.promo)}</div>`:`<div class="etq-price">${fmtBRL(p.preco)}</div>`}
+        ${p.desc?`<div class="etq-desc">${p.desc}</div>`:""}
+      </div>
+    </div>`;
+    if(modelo==="completa") return `<div class="etq etq-comp">
+      <div class="etq-head-grad">${logoHtml}<span>${p.nome}</span></div>
+      <div class="etq-body">${skuHtml}
+        ${temPromo?`<div style="display:flex;align-items:center;gap:6px;justify-content:center"><span class="etq-old">${fmtBRL(p.preco)}</span><div class="etq-price">${fmtBRL(p.promo)}</div></div>`:`<div class="etq-price">${fmtBRL(p.preco)}</div>`}
+        ${p.desc?`<div class="etq-desc">${p.desc}</div>`:""}
+        <div class="etq-meta"><span>${p.cat}</span><span>${p.un}</span></div>
+      </div>
+    </div>`;
+    // simples
+    return `<div class="etq etq-simples">
+      <div class="etq-head">${logoHtml}<span>${p.nome}</span></div>
+      <div class="etq-body">${skuHtml}<div class="etq-price">${fmtBRL(p.preco)}</div>${p.desc?`<div class="etq-desc">${p.desc}</div>`:""}</div>
+    </div>`;
+  }).join("");
+
+  const pageCSS = isTerm
+    ? `@page{size:80mm auto;margin:3mm} body{width:80mm} .grid{display:flex;flex-direction:column;gap:6px;padding:4px}`
+    : `@page{size:A4;margin:12mm} body{} .grid{display:grid;grid-template-columns:repeat(${cols},1fr);gap:8px;padding:6px}`;
+
+  const win = window.open("","_blank","width="+(isTerm?400:900)+",height=700");
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <title>Etiquetas KaririTech</title>
+  <style>
+    @media print{.no-print{display:none!important}}
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Segoe UI',Tahoma,sans-serif;background:#fff;padding:${isTerm?"4px":"12px"}}
+    ${pageCSS}
+    .no-print{display:flex;gap:8px;margin-bottom:12px;padding:8px}
+    .btn{padding:8px 18px;border:none;border-radius:6px;cursor:pointer;font-weight:700;font-size:12px}
+    .btn-p{background:#87042e;color:#fff}.btn-c{background:#000;color:#fff}
+    /* label base */
+    .etq{border-radius:6px;overflow:hidden;break-inside:avoid;border:1.5px solid #87042e}
+    .etq-head{background:#87042e;padding:5px 7px;font-size:${isTerm?"11px":"10px"};font-weight:700;color:#fff;display:flex;flex-direction:column;gap:1px}
+    .etq-head-grad{background:linear-gradient(135deg,#1a1a1a,#87042e);padding:5px 7px;font-size:${isTerm?"11px":"10px"};font-weight:700;color:#fff;display:flex;flex-direction:column;gap:1px}
+    .etq-body{padding:${isTerm?"7px":"6px"};text-align:center;background:#fff}
+    .etq-price{font-size:${isTerm?"22px":"20px"};font-weight:900;color:#87042e;line-height:1}
+    .etq-old{font-size:9px;color:#bbb;text-decoration:line-through;margin-bottom:2px}
+    .etq-badge{background:#87042e;color:#fff;font-size:9px;font-weight:700;padding:1px 8px;border-radius:20px;display:inline-block;margin:2px 0}
+    .etq-sku{font-size:8px;color:#aaa;font-family:Consolas,monospace;margin-bottom:2px}
+    .etq-desc{font-size:8px;color:#888;margin-top:3px;border-top:1px solid #f0f0f0;padding-top:2px}
+    .etq-meta{display:flex;justify-content:space-between;font-size:7px;color:#bbb;margin-top:3px}
+    .etq-mini{border-width:1px}
+    .etq-mini .etq-head{padding:3px 5px}
+    .etq-mini .etq-body{padding:4px}
+    .etq-mini .etq-price{font-size:${isTerm?"18px":"15px"}}
+    .lbl-brand{font-size:8px;font-weight:900;letter-spacing:1px;margin-bottom:1px}
+    .brand-w{color:#fff}.brand-r{color:#ffaabb}
+  </style></head><body>
+  <div class="no-print">
+    <button class="btn btn-p" onclick="window.print()">🖨️ ${isTerm?"Imprimir Térmica":"Imprimir A4 / Salvar PDF"} (${prods.length} etiqueta${prods.length!==1?"s":""})</button>
+    <button class="btn btn-c" onclick="window.close()">✕ Fechar</button>
+  </div>
+  <div class="grid">${labels}</div>
+  </body></html>`);
+  win.document.close();
 }
 
 // Close modal on overlay click
